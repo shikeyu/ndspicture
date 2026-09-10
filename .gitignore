@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyz
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# 构建产物
+build/
+dist/
+
+# IDE / 工具
+.trae/
+.vscode/
+.idea/
+*.log
+
+# 临时调试脚本（开发期分析工具，非运行所需）
+debug_*.py
+analyze_*.py
+test_huff_*.py
+verify_*.py
+_test*.py
+
+# 临时截图
+screenshot*.png
+window_only.png
+
+# VB6 原版文件（PySide6 重写版不包含）
+ndspicture.frm
+ndspicture.frx
+ndspicture.vbp
+ndspicture.vbw
+ndspicture.exe
+
+# 构建脚本
+build_pyc.py
+ndspicture.spec
