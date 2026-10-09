@@ -29,7 +29,7 @@ from .canvas import TileCanvas, TextPreviewCanvas
 PIC_TYPES = ["16色", "256色", "超16色", "PCE16色", "PCE16色8x8",
              "16色BMP", "256色BMP", "16色MAP", "256色MAP"]
 COLOR_TYPES = ["RGB 2BIT", "RGB 3BIT", "RGBA 4BIT"]
-TEXT_EFFECTS = ["无效果", "描边", "阴影"]
+TEXT_EFFECTS = ["无效果", "描边", "阴影左上", "阴影右上", "阴影左下", "阴影右下"]
 
 
 def parse_int_or_hex(s: str) -> int:
@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
 
         self._build_ui()
         self._connect_signals()
+        self._add_tooltips()
         self._load_recent_gpp()
         self._refresh_recent_menu()
         # 恢复上次保存的字体
@@ -95,7 +96,38 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
+    def _add_tooltips(self):
+        """为操作按钮 / 文字工具 / 参数输入框添加悬停帮助提示。"""
+        tips = {
+            # 操作区
+            self.btn_show: "从 ROM 读取当前条目并显示到画布",
+            self.btn_import: "从 BMP/PNG 图片导入数据到画布(路径有效且存在则直接导入, 否则弹出选择框)",
+            self.btn_export: "将画布图片导出为 BMP/PNG 文件",
+            self.btn_write: "将画布数据写回 ROM(压缩格式自动重新压缩, 未修改数据跳过压缩)",
+            self.btn_set_tile_count: "重新统计 MAP 图片瓦片数上限(仅 16色MAP/256色MAP, 需先显示)",
+            # 文字工具栏
+            self.btn_apply_text: "在左侧预览画布渲染当前文字(仅查看效果, 不写入主画布)",
+            self.btn_load_image: "从 BMP 文件加载参考图片到预览画布",
+            self.btn_font: "选择字体和字号",
+            self.btn_update_text: "定向替换: 把预览画布框选内容贴到主画布框选位置(两框尺寸须一致)",
+            self.btn_paste_text: "按坐标贴入: 按 横坐标/纵坐标/宽/高 把文字渲染到主画布",
+            self.btn_up: "上移预览画布文字", self.btn_down: "下移预览画布文字",
+            self.btn_left: "左移预览画布文字", self.btn_right: "右移预览画布文字",
+            # 图片数据输入
+            self.edit_rom: "目标 ROM 文件路径",
+            self.edit_pal_addr: "调色板数据地址",
+            self.edit_tile_addr: "瓦片数据地址(支持 RAW/LZ77/RLE/Huffman/Huff+LZ77)",
+            self.edit_bmp: "导入/导出时使用的图片文件路径",
+            self.chk_write_pal: "导入图片时是否同时写入调色板数据",
+            self.combo_effect: "文字效果: 无效果 / 描边 / 阴影(可选左上/右上/左下/右下)",
+            self.chk_text_preview: "勾选后主画布用绿色虚线框显示贴入的位置和尺寸",
+        }
+        for w, t in tips.items():
+            if w is not None:
+                w.setToolTip(t)
+
     # ---------- UI 构建 ----------
+
 
     def _build_ui(self):
         # ---------- 菜单栏 ----------
@@ -204,7 +236,7 @@ class MainWindow(QMainWindow):
         grid = QGridLayout()
         grid.setHorizontalSpacing(8)
         grid.setVerticalSpacing(4)
-        LBL_W, SPIN_W, COMBO_W, BTN_W = 54, 90, 94, 68
+        LBL_W, SPIN_W, COMBO_W, BTN_W = 54, 90, 116, 68
 
         def _lbl(text: str, w=LBL_W):
             lab = QLabel(text)
@@ -262,10 +294,10 @@ class MainWindow(QMainWindow):
         self.btn_apply_text = QPushButton("显示")
         self.btn_apply_text.setFixedWidth(BTN_W)
         grid.addWidget(self.btn_apply_text, 2, 5)  # 位于「宽/高」正下方
-        self.btn_update_text = QPushButton("更新")
+        self.btn_update_text = QPushButton("框选更新")
         self.btn_update_text.setFixedWidth(BTN_W)
         grid.addWidget(self.btn_update_text, 2, 6)  # 位于「效果」正下方
-        self.btn_paste_text = QPushButton("贴入")
+        self.btn_paste_text = QPushButton("坐标贴入")
         self.btn_paste_text.setFixedWidth(BTN_W)
         grid.addWidget(self.btn_paste_text, 2, 7)  # 位于「字体」正下方
 

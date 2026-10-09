@@ -294,7 +294,7 @@ class TextPreviewCanvas(QWidget):
         self._bg_color = QColor(0, 0, 0)
         self._fg_color = QColor(255, 255, 255)
         self._edge_color = QColor(128, 128, 128)
-        self._effect = "无效果"  # 无效果/描边/阴影
+        self._effect = "无效果"  # 无效果/描边/阴影左上/阴影右上/阴影左下/阴影右下
         # drawText(x,y) 的 y 是基线位置; 默认基线=字号上方距离(>0), 避免文字被顶部裁掉
         self._text_x = 8
         self._text_y = 24
@@ -366,6 +366,16 @@ class TextPreviewCanvas(QWidget):
         self._text_y = max(0, min(30, ny))
         self._render()
 
+    @staticmethod
+    def _shadow_dx_dy(effect: str):
+        """阴影方向 -> 偏移 (dx, dy)。默认左上。"""
+        return {
+            "阴影左上": (-1, -1),
+            "阴影右上": (1, -1),
+            "阴影左下": (-1, 1),
+            "阴影右下": (1, 1),
+        }.get(effect, (-1, -1))
+
     def _draw_multiline(self, painter, x, y, text):
         """绘制多行文字。\\n 分隔的每行按行高递进 y(基线)。"""
         lines = text.split("\n")
@@ -409,9 +419,10 @@ class TextPreviewCanvas(QWidget):
                     # 注意: drawText 的 y 是基线位置
             painter.setPen(QPen(self._fg_color))
             self._draw_multiline(painter, self._text_x, self._text_y, self._text)
-        elif self._effect == "阴影":
+        elif self._effect.startswith("阴影"):
+            dx, dy = self._shadow_dx_dy(self._effect)
             painter.setPen(QPen(self._edge_color))
-            self._draw_multiline(painter, self._text_x - 1, self._text_y - 1, self._text)
+            self._draw_multiline(painter, self._text_x + dx, self._text_y + dy, self._text)
             painter.setPen(QPen(self._fg_color))
             self._draw_multiline(painter, self._text_x, self._text_y, self._text)
         else:
@@ -543,9 +554,10 @@ class TextPreviewCanvas(QWidget):
                         self._draw_multiline(painter, tx + dx, ty + dy, self._text)
                 painter.setPen(QPen(self._fg_color))
                 self._draw_multiline(painter, tx, ty, self._text)
-            elif self._effect == "阴影":
+            elif self._effect.startswith("阴影"):
+                dx, dy = self._shadow_dx_dy(self._effect)
                 painter.setPen(QPen(self._edge_color))
-                self._draw_multiline(painter, tx - 1, ty - 1, self._text)
+                self._draw_multiline(painter, tx + dx, ty + dy, self._text)
                 painter.setPen(QPen(self._fg_color))
                 self._draw_multiline(painter, tx, ty, self._text)
             else:
